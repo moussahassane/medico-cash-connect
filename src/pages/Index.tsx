@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Stethoscope, Shield, Clock, Phone, MessageCircle, Image as ImageIcon, Menu, UserMd, HelpCircle, Info } from "lucide-react";
+import { Stethoscope, Shield, Clock, Phone, MessageCircle, Image as ImageIcon, Menu, User, HelpCircle, Info } from "lucide-react";
 import LoginModal from "@/components/LoginModal";
 import PaymentModal from "@/components/PaymentModal";
 import ConsultationChat from "@/components/ConsultationChat";

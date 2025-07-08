@@ -5,16 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  UserMd, 
-  HelpCircle, 
-  Info, 
-  Shield, 
+import { Separator } from "@/components/ui/separator";
+import {
+  User,
+  HelpCircle,
+  Info,
+  Shield,
+  FileText,
   Upload,
-  CheckCircle,
-  AlertCircle
+  Phone,
+  Mail
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -25,266 +26,342 @@ interface SideMenuProps {
 }
 
 const SideMenu = ({ open, onClose, onDoctorLogin }: SideMenuProps) => {
+  const [activeSection, setActiveSection] = useState<string>('main');
   const [doctorForm, setDoctorForm] = useState({
     name: '',
     email: '',
     phone: '',
     speciality: '',
     experience: '',
-    motivation: ''
+    description: ''
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleDoctorRegistration = async (e: React.FormEvent) => {
+  const handleDoctorRegistration = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      toast({
-        title: "Demande envoyée !",
-        description: "Votre demande d'inscription a été soumise. Nous vous contacterons sous 48h.",
-      });
-      setIsSubmitting(false);
-      setDoctorForm({
-        name: '',
-        email: '',
-        phone: '',
-        speciality: '',
-        experience: '',
-        motivation: ''
-      });
-    }, 2000);
+    toast({
+      title: "Demande envoyée",
+      description: "Votre demande d'enregistrement a été soumise. Nous vous contacterons sous 48h.",
+    });
+    setActiveSection('main');
   };
 
-  const faqItems = [
+  const menuItems = [
     {
-      question: "Comment fonctionne le paiement ?",
-      answer: "Le paiement se fait via Mobile Money (Orange, Moov, Airtel) avant chaque consultation. C'est sécurisé et instantané."
+      id: 'doctor-register',
+      title: 'Je suis médecin',
+      icon: User,
+      description: 'Rejoignez notre équipe'
     },
     {
-      question: "Combien coûte une consultation ?",
-      answer: "Consultation standard: 1000 FCFA, Consultation urgente: 2000 FCFA. Pas de frais cachés."
+      id: 'faq',
+      title: 'FAQ',
+      icon: HelpCircle,
+      description: 'Questions fréquentes'
     },
     {
-      question: "Combien de temps dure une consultation ?",
-      answer: "Chaque consultation dure 15 minutes maximum. Pour les cas complexes, vous pouvez repayer pour prolonger."
+      id: 'about',
+      title: 'À propos',
+      icon: Info,
+      description: 'En savoir plus'
     },
     {
-      question: "Les médecins sont-ils qualifiés ?",
-      answer: "Tous nos médecins sont diplômés et vérifiés. Ils fournissent leurs diplômes lors de l'inscription."
-    },
-    {
-      question: "Puis-je envoyer des images ?",
-      answer: "Oui, vous pouvez partager des photos (ordonnances, résultats d'analyses, etc.) durant la consultation."
+      id: 'privacy',
+      title: 'Confidentialité',
+      icon: Shield,
+      description: 'Politique de confidentialité'
     }
   ];
 
+  const renderMainMenu = () => (
+    <div className="space-y-2">
+      {menuItems.map((item) => (
+        <Button
+          key={item.id}
+          variant="ghost"
+          className="w-full justify-start h-auto p-4"
+          onClick={() => setActiveSection(item.id)}
+        >
+          <item.icon className="w-5 h-5 mr-3" />
+          <div className="text-left">
+            <div className="font-medium">{item.title}</div>
+            <div className="text-sm text-gray-500">{item.description}</div>
+          </div>
+        </Button>
+      ))}
+      
+      <Separator className="my-4" />
+      
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={onDoctorLogin}
+      >
+        Connexion Médecin
+      </Button>
+    </div>
+  );
+
+  const renderDoctorRegistration = () => (
+    <div className="space-y-4">
+      <Button
+        variant="ghost"
+        onClick={() => setActiveSection('main')}
+        className="mb-4"
+      >
+        ← Retour
+      </Button>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-blue-900">Inscription Médecin</CardTitle>
+          <CardDescription>
+            Rejoignez notre plateforme de téléconsultation
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleDoctorRegistration} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nom complet *</Label>
+              <Input
+                id="name"
+                value={doctorForm.name}
+                onChange={(e) => setDoctorForm(prev => ({ ...prev, name: e.target.value }))}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={doctorForm.email}
+                onChange={(e) => setDoctorForm(prev => ({ ...prev, email: e.target.value }))}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="phone">Téléphone *</Label>
+              <Input
+                id="phone"
+                value={doctorForm.phone}
+                onChange={(e) => setDoctorForm(prev => ({ ...prev, phone: e.target.value }))}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="speciality">Spécialité *</Label>
+              <Input
+                id="speciality"
+                value={doctorForm.speciality}
+                onChange={(e) => setDoctorForm(prev => ({ ...prev, speciality: e.target.value }))}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="experience">Années d'expérience</Label>
+              <Input
+                id="experience"
+                value={doctorForm.experience}
+                onChange={(e) => setDoctorForm(prev => ({ ...prev, experience: e.target.value }))}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="description">Présentation</Label>
+              <Textarea
+                id="description"
+                value={doctorForm.description}
+                onChange={(e) => setDoctorForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Parlez-nous de votre parcours..."
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Diplôme médical *</Label>
+              <Button variant="outline" className="w-full">
+                <Upload className="w-4 h-4 mr-2" />
+                Télécharger le diplôme
+              </Button>
+              <p className="text-xs text-gray-500">
+                Format accepté: PDF, JPG, PNG (max 5MB)
+              </p>
+            </div>
+            
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
+              Soumettre la demande
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderFAQ = () => (
+    <div className="space-y-4">
+      <Button
+        variant="ghost"
+        onClick={() => setActiveSection('main')}
+        className="mb-4"
+      >
+        ← Retour
+      </Button>
+      
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Comment ça marche ?</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600">
+              1. Cliquez sur "Appeler un médecin"<br/>
+              2. Payez via Mobile Money<br/>
+              3. Vous êtes automatiquement connecté à un médecin
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Quels sont les tarifs ?</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600">
+              Consultation standard: 1000 FCFA<br/>
+              Consultation urgente: 2000 FCFA
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Les paiements sont-ils sécurisés ?</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600">
+              Oui, nous utilisons FedaPay qui assure la sécurité de toutes vos transactions Mobile Money.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
+  const renderAbout = () => (
+    <div className="space-y-4">
+      <Button
+        variant="ghost"
+        onClick={() => setActiveSection('main')}
+        className="mb-4"
+      >
+        ← Retour
+      </Button>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-blue-900">Vision Santé</CardTitle>
+          <CardDescription>Votre médecin en un clic</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Vision Santé révolutionne l'accès aux soins de santé en Afrique en permettant 
+            des consultations médicales instantanées via votre smartphone.
+          </p>
+          
+          <div className="space-y-2">
+            <h4 className="font-medium">Notre mission</h4>
+            <p className="text-sm text-gray-600">
+              Rendre les soins de santé accessibles à tous, partout et à tout moment.
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <h4 className="font-medium">Contact</h4>
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <Phone className="w-4 h-4" />
+              <span>+225 XX XX XX XX</span>
+            </div>
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <Mail className="w-4 h-4" />
+              <span>contact@visionsante.ci</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderPrivacy = () => (
+    <div className="space-y-4">
+      <Button
+        variant="ghost"
+        onClick={() => setActiveSection('main')}
+        className="mb-4"
+      >
+        ← Retour
+      </Button>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-blue-900">Politique de confidentialité</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <h4 className="font-medium">Protection des données</h4>
+            <p className="text-sm text-gray-600">
+              Vos données médicales sont chiffrées et protégées selon les normes internationales.
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <h4 className="font-medium">Confidentialité médicale</h4>
+            <p className="text-sm text-gray-600">
+              Toutes les consultations respectent le secret médical le plus strict.
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <h4 className="font-medium">Utilisation des données</h4>
+            <p className="text-sm text-gray-600">
+              Vos données ne sont jamais partagées avec des tiers sans votre consentement explicite.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'doctor-register':
+        return renderDoctorRegistration();
+      case 'faq':
+        return renderFAQ();
+      case 'about':
+        return renderAbout();
+      case 'privacy':
+        return renderPrivacy();
+      default:
+        return renderMainMenu();
+    }
+  };
+
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent side="left" className="w-full sm:w-96 overflow-y-auto">
+      <SheetContent side="left" className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <UserMd className="w-5 h-5 text-white" />
-            </div>
-            <span>Vision Santé</span>
-          </SheetTitle>
+          <SheetTitle className="text-blue-900">Menu</SheetTitle>
           <SheetDescription>
-            Votre santé, notre priorité
+            Navigation et informations
           </SheetDescription>
         </SheetHeader>
-
-        <Tabs defaultValue="doctor" className="mt-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="doctor">Médecin</TabsTrigger>
-            <TabsTrigger value="faq">FAQ</TabsTrigger>
-            <TabsTrigger value="about">À propos</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="doctor" className="space-y-4 mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <UserMd className="w-5 h-5 text-blue-600" />
-                  <span>Devenir médecin partenaire</span>
-                </CardTitle>
-                <CardDescription>
-                  Rejoignez notre équipe de médecins et consultez des patients en ligne
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleDoctorRegistration} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nom complet *</Label>
-                    <Input
-                      id="name"
-                      value={doctorForm.name}
-                      onChange={(e) => setDoctorForm(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Dr. Votre Nom"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={doctorForm.email}
-                      onChange={(e) => setDoctorForm(prev => ({ ...prev, email: e.target.value }))}
-                      placeholder="votre@email.com"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Téléphone *</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={doctorForm.phone}
-                      onChange={(e) => setDoctorForm(prev => ({ ...prev, phone: e.target.value }))}
-                      placeholder="0X XX XX XX XX"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="speciality">Spécialité *</Label>
-                    <Input
-                      id="speciality"
-                      value={doctorForm.speciality}
-                      onChange={(e) => setDoctorForm(prev => ({ ...prev, speciality: e.target.value }))}
-                      placeholder="Médecine générale, Pédiatrie, etc."
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="experience">Années d'expérience *</Label>
-                    <Input
-                      id="experience"
-                      type="number"
-                      value={doctorForm.experience}
-                      onChange={(e) => setDoctorForm(prev => ({ ...prev, experience: e.target.value }))}
-                      placeholder="5"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="motivation">Motivation</Label>
-                    <Textarea
-                      id="motivation"
-                      value={doctorForm.motivation}
-                      onChange={(e) => setDoctorForm(prev => ({ ...prev, motivation: e.target.value }))}
-                      placeholder="Pourquoi voulez-vous rejoindre Vision Santé ?"
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                    <div className="flex items-start space-x-2">
-                      <Upload className="w-4 h-4 text-amber-600 mt-0.5" />
-                      <div className="text-sm">
-                        <p className="font-medium text-amber-800">Documents requis</p>
-                        <p className="text-amber-700">
-                          Après validation, vous devrez fournir vos diplômes et certificats par email.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-blue-600 hover:bg-blue-700"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Envoi en cours..." : "Envoyer ma candidature"}
-                  </Button>
-                </form>
-
-                <div className="mt-6 pt-4 border-t">
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={onDoctorLogin}
-                  >
-                    <UserMd className="w-4 h-4 mr-2" />
-                    Accès espace médecin
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="faq" className="space-y-4 mt-4">
-            <div className="space-y-4">
-              {faqItems.map((item, index) => (
-                <Card key={index}>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-start space-x-2">
-                      <HelpCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                      <span>{item.question}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-600">{item.answer}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="about" className="space-y-4 mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Info className="w-5 h-5 text-blue-600" />
-                  <span>À propos de Vision Santé</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Notre Mission</h4>
-                  <p className="text-sm text-gray-600">
-                    Rendre la consultation médicale accessible à tous, partout et à tout moment. 
-                    Nous connectons les patients avec des médecins qualifiés via une plateforme simple et sécurisée.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2 flex items-center space-x-2">
-                    <Shield className="w-4 h-4 text-green-600" />
-                    <span>Sécurité & Confidentialité</span>
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    Toutes les communications sont chiffrées. Vos données médicales restent strictement confidentielles 
-                    et ne sont partagées qu'avec le médecin consultant.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2 flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-blue-600" />
-                    <span>Médecins Certifiés</span>
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    Tous nos médecins sont diplômés d'État et vérifiés. Ils fournissent leurs diplômes 
-                    et justificatifs lors de leur inscription.
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t">
-                  <p className="text-xs text-gray-500 text-center">
-                    Version 1.0.0 • © 2024 Vision Santé
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        
+        <div className="mt-6">
+          {renderContent()}
+        </div>
       </SheetContent>
     </Sheet>
   );

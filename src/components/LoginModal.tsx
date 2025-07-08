@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserMd, User, Lock, Mail } from "lucide-react";
+import { User, Lock, Mail } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface LoginModalProps {
@@ -74,7 +74,7 @@ const LoginModal = ({ open, onClose, onSuccess }: LoginModalProps) => {
               <span>Patient</span>
             </TabsTrigger>
             <TabsTrigger value="doctor" className="flex items-center space-x-2">
-              <UserMd className="w-4 h-4" />
+              <User className="w-4 h-4" />
               <span>Médecin</span>
             </TabsTrigger>
           </TabsList>
@@ -126,7 +126,7 @@ const LoginModal = ({ open, onClose, onSuccess }: LoginModalProps) => {
               <div className="space-y-2">
                 <Label htmlFor="doctorCode">Code Médecin</Label>
                 <div className="relative">
-                  <UserMd className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     id="doctorCode"
                     type="password"
