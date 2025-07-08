@@ -34,157 +34,170 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-blue-100 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
-              <Stethoscope className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-blue-900">Vision Santé</h1>
-              <p className="text-xs text-blue-600">Votre médecin en un clic</p>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowSideMenu(true)}
-            className="text-blue-700 hover:bg-blue-50"
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
-        </div>
-      </header>
-
-      {!showChat && !showDoctorDashboard && (
-        <main className="container mx-auto px-4 py-8">
-          {/* Hero Section */}
-          <div className="text-center mb-12">
-            <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <Stethoscope className="w-10 h-10 text-white" />
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-blue-900 mb-4">
-              Un médecin pour votre famille,
-              <span className="block text-blue-600">en un clic.</span>
-            </h2>
-            <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
-              Consultez un médecin qualifié depuis chez vous. Paiement sécurisé, 
-              consultation immédiate, disponible 24h/24.
-            </p>
-            
-            <Button
-              onClick={handleConsultationClick}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-xl px-12 py-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-            >
-              <Phone className="w-6 h-6 mr-3" />
-              Appeler un médecin
-            </Button>
-            
-            <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-green-600">
-              <Shield className="w-4 h-4" />
-              <span>Paiement sécurisé • Consultation instantanée</span>
-            </div>
-          </div>
-
-          {/* Features */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow duration-300 bg-white/70 backdrop-blur-sm">
-              <CardHeader className="text-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <MessageCircle className="w-6 h-6 text-blue-600" />
-                </div>
-                <CardTitle className="text-blue-900">Chat Médical</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-center">
-                  Discutez en temps réel avec un médecin qualifié via notre chat sécurisé.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow duration-300 bg-white/70 backdrop-blur-sm">
-              <CardHeader className="text-center">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <ImageIcon className="w-6 h-6 text-green-600" />
-                </div>
-                <CardTitle className="text-blue-900">Partage d'Images</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-center">
-                  Envoyez vos ordonnances, résultats d'analyses ou photos médicales.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow duration-300 bg-white/70 backdrop-blur-sm">
-              <CardHeader className="text-center">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Clock className="w-6 h-6 text-purple-600" />
-                </div>
-                <CardTitle className="text-blue-900">Disponible 24h/24</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-center">
-                  Nos médecins sont disponibles à tout moment pour vos urgences.
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Pricing */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg p-8 text-center mb-12">
-            <h3 className="text-2xl font-bold text-blue-900 mb-4">Tarification Simple</h3>
-            <div className="flex items-center justify-center space-x-4 mb-6">
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-lg px-4 py-2">
-                Consultation Standard: 1000 FCFA
-              </Badge>
-              <Badge variant="secondary" className="bg-red-100 text-red-800 text-lg px-4 py-2">
-                Urgence: 2000 FCFA
-              </Badge>
-            </div>
-            <p className="text-gray-600">Paiement sécurisé via Mobile Money (Orange, Moov, Airtel)</p>
-          </div>
-        </main>
-      )}
-
-      {/* Modals and Components */}
-      <LoginModal 
-        open={showLogin} 
-        onClose={() => setShowLogin(false)}
-        onSuccess={(type) => {
-          setUserType(type);
-          setShowLogin(false);
-          if (type === 'doctor') {
-            setShowDoctorDashboard(true);
-          }
+    <div className="min-h-screen relative">
+      {/* Background Image with Overlay */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')`
         }}
-      />
-      
-      <PaymentModal 
-        open={showPayment} 
-        onClose={() => setShowPayment(false)}
-        onSuccess={handlePaymentSuccess}
-      />
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/85 via-blue-800/80 to-blue-700/75"></div>
+      </div>
 
-      {showChat && (
-        <div className="fixed inset-0 z-50">
-          <ConsultationChat onClose={() => setShowChat(false)} />
-        </div>
-      )}
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Header */}
+        <header className="bg-white/10 backdrop-blur-md border-b border-white/20 sticky top-0 z-40">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-white/20 to-white/30 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20">
+                <Stethoscope className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-white">Vision Santé</h1>
+                <p className="text-xs text-white/80">Votre médecin en un clic</p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowSideMenu(true)}
+              className="text-white hover:bg-white/10 border border-white/20"
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
+          </div>
+        </header>
 
-      {showDoctorDashboard && (
-        <div className="fixed inset-0 z-50">
-          <DoctorDashboard onClose={() => setShowDoctorDashboard(false)} />
-        </div>
-      )}
+        {!showChat && !showDoctorDashboard && (
+          <main className="container mx-auto px-4 py-8">
+            {/* Hero Section */}
+            <div className="text-center mb-12">
+              <div className="w-20 h-20 bg-gradient-to-r from-white/20 to-white/30 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl border border-white/20">
+                <Stethoscope className="w-10 h-10 text-white" />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 drop-shadow-lg">
+                Un médecin pour votre famille,
+                <span className="block text-white/90">en un clic.</span>
+              </h2>
+              <p className="text-white/90 text-lg mb-8 max-w-2xl mx-auto drop-shadow-md">
+                Consultez un médecin qualifié depuis chez vous. Paiement sécurisé, 
+                consultation immédiate, disponible 24h/24.
+              </p>
+              
+              <Button
+                onClick={handleConsultationClick}
+                className="bg-gradient-to-r from-white to-white/95 hover:from-white/95 hover:to-white text-blue-900 text-xl px-12 py-6 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 font-semibold"
+              >
+                <Phone className="w-6 h-6 mr-3" />
+                Appeler un médecin
+              </Button>
+              
+              <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-white/90">
+                <Shield className="w-4 h-4" />
+                <span>Paiement sécurisé • Consultation instantanée</span>
+              </div>
+            </div>
 
-      <SideMenu 
-        open={showSideMenu} 
-        onClose={() => setShowSideMenu(false)}
-        onDoctorLogin={handleDoctorLogin}
-      />
+            {/* Features */}
+            <div className="grid md:grid-cols-3 gap-6 mb-12">
+              <Card className="border-0 shadow-2xl hover:shadow-3xl transition-shadow duration-300 bg-white/10 backdrop-blur-md border border-white/20">
+                <CardHeader className="text-center">
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mx-auto mb-3 border border-white/20">
+                    <MessageCircle className="w-6 h-6 text-white" />
+                  </div>
+                  <CardTitle className="text-white">Chat Médical</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-center text-white/80">
+                    Discutez en temps réel avec un médecin qualifié via notre chat sécurisé.
+                  </CardDescription>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-2xl hover:shadow-3xl transition-shadow duration-300 bg-white/10 backdrop-blur-md border border-white/20">
+                <CardHeader className="text-center">
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mx-auto mb-3 border border-white/20">
+                    <ImageIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <CardTitle className="text-white">Partage d'Images</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-center text-white/80">
+                    Envoyez vos ordonnances, résultats d'analyses ou photos médicales.
+                  </CardDescription>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-2xl hover:shadow-3xl transition-shadow duration-300 bg-white/10 backdrop-blur-md border border-white/20">
+                <CardHeader className="text-center">
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mx-auto mb-3 border border-white/20">
+                    <Clock className="w-6 h-6 text-white" />
+                  </div>
+                  <CardTitle className="text-white">Disponible 24h/24</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-center text-white/80">
+                    Nos médecins sont disponibles à tout moment pour vos urgences.
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Pricing */}
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 text-center mb-12 border border-white/20">
+              <h3 className="text-2xl font-bold text-white mb-4">Tarification Simple</h3>
+              <div className="flex items-center justify-center space-x-4 mb-6">
+                <Badge variant="secondary" className="bg-white/20 backdrop-blur-sm text-white text-lg px-4 py-2 border border-white/20">
+                  Consultation Standard: 1000 FCFA
+                </Badge>
+                <Badge variant="secondary" className="bg-red-500/20 backdrop-blur-sm text-white text-lg px-4 py-2 border border-red-300/20">
+                  Urgence: 2000 FCFA
+                </Badge>
+              </div>
+              <p className="text-white/80">Paiement sécurisé via Mobile Money (Orange, Moov, Airtel)</p>
+            </div>
+          </main>
+        )}
+
+        {/* Modals and Components */}
+        <LoginModal 
+          open={showLogin} 
+          onClose={() => setShowLogin(false)}
+          onSuccess={(type) => {
+            setUserType(type);
+            setShowLogin(false);
+            if (type === 'doctor') {
+              setShowDoctorDashboard(true);
+            }
+          }}
+        />
+        
+        <PaymentModal 
+          open={showPayment} 
+          onClose={() => setShowPayment(false)}
+          onSuccess={handlePaymentSuccess}
+        />
+
+        {showChat && (
+          <div className="fixed inset-0 z-50">
+            <ConsultationChat onClose={() => setShowChat(false)} />
+          </div>
+        )}
+
+        {showDoctorDashboard && (
+          <div className="fixed inset-0 z-50">
+            <DoctorDashboard onClose={() => setShowDoctorDashboard(false)} />
+          </div>
+        )}
+
+        <SideMenu 
+          open={showSideMenu} 
+          onClose={() => setShowSideMenu(false)}
+          onDoctorLogin={handleDoctorLogin}
+        />
+      </div>
     </div>
   );
 };
