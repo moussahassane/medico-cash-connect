@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -282,11 +281,11 @@ const SideMenu = ({ open, onClose, onDoctorLogin }: SideMenuProps) => {
             <h4 className="font-medium">Contact</h4>
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <Phone className="w-4 h-4" />
-              <span>+225 XX XX XX XX</span>
+              <span>+227 80 81 31 13</span>
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <Mail className="w-4 h-4" />
-              <span>contact@visionsante.ci</span>
+              <span>karimassani52@gmail.com</span>
             </div>
           </div>
         </CardContent>
