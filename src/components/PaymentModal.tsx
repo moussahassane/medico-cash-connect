@@ -8,11 +8,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditCard, Smartphone, Shield, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PaymentModalProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (consultationId: string) => void;
 }
 
 const PaymentModal = ({ open, onClose, onSuccess }: PaymentModalProps) => {
@@ -31,31 +32,72 @@ const PaymentModal = ({ open, onClose, onSuccess }: PaymentModalProps) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate FedaPay integration
     try {
-      // This would be replaced with actual FedaPay API call
-      const paymentData = {
-        amount: prices[consultationType as keyof typeof prices],
-        currency: 'XOF',
-        description: `Consultation ${consultationType === 'standard' ? 'Standard' : 'Urgente'}`,
-        customer: {
-          phone: phoneNumber
-        },
-        payment_method: paymentMethod,
-        provider: provider
-      };
+      // Check if this is a free access email
+      const isFreeAccess = phoneNumber === "karimassani52@gmail.com" || phoneNumber.includes("karimassani52");
+      
+      // Create consultation in database
+      const { data: consultation, error: consultationError } = await supabase
+        .from('consultations')
+        .insert({
+          patient_phone: phoneNumber,
+          patient_email: phoneNumber.includes('@') ? phoneNumber : null,
+          type: consultationType,
+          amount: isFreeAccess ? 0 : prices[consultationType as keyof typeof prices],
+          payment_status: isFreeAccess ? 'free' : 'pending',
+          payment_provider: provider,
+          payment_phone: phoneNumber,
+          status: 'waiting'
+        })
+        .select()
+        .single();
 
-      console.log("Processing payment with FedaPay:", paymentData);
+      if (consultationError) {
+        throw new Error("Erreur lors de la création de la consultation");
+      }
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      if (isFreeAccess) {
+        // Direct access for free user
+        toast({
+          title: "Accès gratuit accordé !",
+          description: "Vous avez un accès gratuit à la consultation.",
+        });
+        onSuccess(consultation.id);
+      } else {
+        // Simulate payment processing
+        const paymentData = {
+          amount: prices[consultationType as keyof typeof prices],
+          currency: 'XOF',
+          description: `Consultation ${consultationType === 'standard' ? 'Standard' : 'Urgente'}`,
+          customer: {
+            phone: phoneNumber
+          },
+          payment_method: paymentMethod,
+          provider: provider
+        };
 
-      toast({
-        title: "Paiement réussi !",
-        description: `Votre paiement de ${prices[consultationType as keyof typeof prices]} FCFA a été traité avec succès.`,
-      });
+        console.log("Processing payment with FedaPay:", paymentData);
 
-      onSuccess();
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        // Update consultation status to paid
+        const { error: updateError } = await supabase
+          .from('consultations')
+          .update({ payment_status: 'paid', status: 'waiting' })
+          .eq('id', consultation.id);
+
+        if (updateError) {
+          throw new Error("Erreur lors de la validation du paiement");
+        }
+
+        toast({
+          title: "Paiement réussi !",
+          description: `Votre paiement de ${prices[consultationType as keyof typeof prices]} FCFA a été traité avec succès.`,
+        });
+
+        onSuccess(consultation.id);
+      }
     } catch (error) {
       toast({
         title: "Erreur de paiement",
@@ -143,21 +185,26 @@ const PaymentModal = ({ open, onClose, onSuccess }: PaymentModalProps) => {
             </RadioGroup>
           </div>
 
-          {/* Phone Number */}
+          {/* Phone Number or Email */}
           <div className="space-y-2">
-            <Label htmlFor="phone">Numéro de téléphone</Label>
+            <Label htmlFor="phone">Numéro de téléphone ou Email</Label>
             <div className="relative">
               <Smartphone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 id="phone"
-                type="tel"
-                placeholder="0X XX XX XX XX"
+                type="text"
+                placeholder="0X XX XX XX XX ou email@example.com"
                 className="pl-10"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 required
               />
             </div>
+            {phoneNumber.includes("karimassani52") && (
+              <p className="text-sm text-green-600 font-medium">
+                ✅ Accès gratuit détecté pour ce compte
+              </p>
+            )}
           </div>
 
           {/* Security Notice */}
@@ -180,6 +227,11 @@ const PaymentModal = ({ open, onClose, onSuccess }: PaymentModalProps) => {
               <div className="flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                 <span>Traitement en cours...</span>
+              </div>
+            ) : phoneNumber.includes("karimassani52") ? (
+              <div className="flex items-center space-x-2">
+                <Check className="w-5 h-5" />
+                <span>Accéder gratuitement</span>
               </div>
             ) : (
               <div className="flex items-center space-x-2">

@@ -17,12 +17,14 @@ const Index = () => {
   const [showDoctorDashboard, setShowDoctorDashboard] = useState(false);
   const [showSideMenu, setShowSideMenu] = useState(false);
   const [userType, setUserType] = useState<'patient' | 'doctor' | null>(null);
+  const [consultationId, setConsultationId] = useState<string>('');
 
   const handleConsultationClick = () => {
     setShowPayment(true);
   };
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = (newConsultationId: string) => {
+    setConsultationId(newConsultationId);
     setShowPayment(false);
     setShowChat(true);
   };
@@ -196,9 +198,12 @@ const Index = () => {
           onSuccess={handlePaymentSuccess}
         />
 
-        {showChat && (
+        {showChat && consultationId && (
           <div className="fixed inset-0 z-50">
-            <ConsultationChat onClose={() => setShowChat(false)} />
+            <ConsultationChat 
+              consultationId={consultationId}
+              onClose={() => setShowChat(false)} 
+            />
           </div>
         )}
 

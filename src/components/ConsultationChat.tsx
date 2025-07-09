@@ -2,10 +2,10 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { X, Send, Image as ImageIcon, User, Paperclip, Phone, Video } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -16,46 +16,189 @@ interface Message {
 }
 
 interface ConsultationChatProps {
+  consultationId: string;
   onClose: () => void;
 }
 
-const ConsultationChat = ({ onClose }: ConsultationChatProps) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'Bonjour ! Je suis le Dr. Martin. Comment puis-je vous aider aujourd\'hui ?',
-      sender: 'doctor',
-      timestamp: new Date()
-    }
-  ]);
+const ConsultationChat = ({ consultationId, onClose }: ConsultationChatProps) => {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [consultationTime, setConsultationTime] = useState(900); // 15 minutes en secondes
+  const [consultation, setConsultation] = useState<any>(null);
+  const [doctor, setDoctor] = useState<any>(null);
+  const [isWaitingForDoctor, setIsWaitingForDoctor] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadConsultation();
+    loadMessages();
+    
+    // Subscribe to new messages
+    const messageSubscription = supabase
+      .channel('consultation-messages')
+      .on('postgres_changes', 
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'consultation_messages',
+          filter: `consultation_id=eq.${consultationId}`
+        }, 
+        (payload) => {
+          const newMsg = payload.new;
+          setMessages(prev => [...prev, {
+            id: newMsg.id,
+            text: newMsg.message_text,
+            sender: newMsg.sender_type,
+            timestamp: new Date(newMsg.created_at),
+            image: newMsg.image_url
+          }]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messageSubscription);
+    };
+  }, [consultationId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setConsultationTime(prev => {
-        if (prev <= 1) {
-          toast({
-            title: "Consultation terminée",
-            description: "Votre temps de consultation est écoulé.",
-            variant: "destructive"
-          });
-          onClose();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    if (!isWaitingForDoctor) {
+      const timer = setInterval(() => {
+        setConsultationTime(prev => {
+          if (prev <= 1) {
+            toast({
+              title: "Consultation terminée",
+              description: "Votre temps de consultation est écoulé.",
+              variant: "destructive"
+            });
+            endConsultation();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
 
-    return () => clearInterval(timer);
-  }, [onClose]);
+      return () => clearInterval(timer);
+    }
+  }, [isWaitingForDoctor]);
+
+  const loadConsultation = async () => {
+    try {
+      const { data: consultationData, error } = await supabase
+        .from('consultations')
+        .select(`
+          *,
+          doctors (*)
+        `)
+        .eq('id', consultationId)
+        .single();
+
+      if (error) throw error;
+
+      setConsultation(consultationData);
+      if (consultationData.doctors) {
+        setDoctor(consultationData.doctors);
+      }
+
+      // If consultation is active, doctor has joined
+      if (consultationData.status === 'active') {
+        setIsWaitingForDoctor(false);
+        // Add welcome message from doctor
+        if (messages.length === 0) {
+          const welcomeMessage: Message = {
+            id: 'welcome',
+            text: `Bonjour ! Je suis ${consultationData.doctors?.full_name || 'Dr. Martin'}. Comment puis-je vous aider aujourd'hui ?`,
+            sender: 'doctor',
+            timestamp: new Date()
+          };
+          setMessages([welcomeMessage]);
+        }
+      } else {
+        // Simulate doctor joining after a short delay
+        setTimeout(() => {
+          simulateDoctorJoining();
+        }, Math.random() * 5000 + 3000); // 3-8 seconds
+      }
+    } catch (error) {
+      console.error('Error loading consultation:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger la consultation.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const loadMessages = async () => {
+    try {
+      const { data: messagesData, error } = await supabase
+        .from('consultation_messages')
+        .select('*')
+        .eq('consultation_id', consultationId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      const formattedMessages = messagesData.map(msg => ({
+        id: msg.id,
+        text: msg.message_text,
+        sender: msg.sender_type as 'patient' | 'doctor',
+        timestamp: new Date(msg.created_at),
+        image: msg.image_url
+      }));
+
+      setMessages(formattedMessages);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  };
+
+  const simulateDoctorJoining = async () => {
+    try {
+      // Update consultation status to active
+      await supabase
+        .from('consultations')
+        .update({ 
+          status: 'active',
+          started_at: new Date().toISOString()
+        })
+        .eq('id', consultationId);
+
+      setIsWaitingForDoctor(false);
+      
+      // Add welcome message
+      const welcomeMessage: Message = {
+        id: 'welcome-' + Date.now(),
+        text: `Bonjour ! Je suis ${doctor?.full_name || 'Dr. Martin'}. Comment puis-je vous aider aujourd'hui ?`,
+        sender: 'doctor',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, welcomeMessage]);
+      
+      // Save welcome message to database
+      await supabase
+        .from('consultation_messages')
+        .insert({
+          consultation_id: consultationId,
+          sender_type: 'doctor',
+          message_text: welcomeMessage.text
+        });
+
+      toast({
+        title: "Médecin connecté",
+        description: `${doctor?.full_name || 'Dr. Martin'} a rejoint la consultation.`,
+      });
+    } catch (error) {
+      console.error('Error updating consultation:', error);
+    }
+  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -63,7 +206,7 @@ const ConsultationChat = ({ onClose }: ConsultationChatProps) => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
     const message: Message = {
@@ -75,26 +218,59 @@ const ConsultationChat = ({ onClose }: ConsultationChatProps) => {
 
     setMessages(prev => [...prev, message]);
     setNewMessage('');
-    setIsTyping(true);
 
-    // Simuler une réponse du médecin
-    setTimeout(() => {
-      const doctorResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: 'Je comprends vos symptômes. Pouvez-vous me donner plus de détails ?',
-        sender: 'doctor',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, doctorResponse]);
-      setIsTyping(false);
-    }, 2000);
+    // Save message to database
+    try {
+      await supabase
+        .from('consultation_messages')
+        .insert({
+          consultation_id: consultationId,
+          sender_type: 'patient',
+          message_text: newMessage
+        });
+
+      // Simulate doctor response
+      setIsTyping(true);
+      setTimeout(async () => {
+        const responses = [
+          'Je comprends vos symptômes. Pouvez-vous me donner plus de détails ?',
+          'D\'après ce que vous me dites, voici mon diagnostic préliminaire...',
+          'Avez-vous déjà eu des problèmes similaires par le passé ?',
+          'Je vous recommande de prendre rendez-vous pour un examen plus approfondi.',
+          'Pouvez-vous me préciser depuis quand vous ressentez ces symptômes ?'
+        ];
+        
+        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        
+        const doctorResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          text: randomResponse,
+          sender: 'doctor',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, doctorResponse]);
+        setIsTyping(false);
+
+        // Save doctor response
+        await supabase
+          .from('consultation_messages')
+          .insert({
+            consultation_id: consultationId,
+            sender_type: 'doctor',
+            message_text: randomResponse
+          });
+      }, 2000 + Math.random() * 3000);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const imageMessage: Message = {
           id: Date.now().toString(),
           text: 'Image partagée',
@@ -103,10 +279,60 @@ const ConsultationChat = ({ onClose }: ConsultationChatProps) => {
           image: e.target?.result as string
         };
         setMessages(prev => [...prev, imageMessage]);
+
+        // Save image message to database
+        try {
+          await supabase
+            .from('consultation_messages')
+            .insert({
+              consultation_id: consultationId,
+              sender_type: 'patient',
+              message_text: 'Image partagée',
+              image_url: e.target?.result as string
+            });
+        } catch (error) {
+          console.error('Error saving image message:', error);
+        }
       };
       reader.readAsDataURL(file);
     }
   };
+
+  const endConsultation = async () => {
+    try {
+      await supabase
+        .from('consultations')
+        .update({ 
+          status: 'completed',
+          ended_at: new Date().toISOString()
+        })
+        .eq('id', consultationId);
+      
+      onClose();
+    } catch (error) {
+      console.error('Error ending consultation:', error);
+      onClose();
+    }
+  };
+
+  if (isWaitingForDoctor) {
+    return (
+      <div className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h3 className="text-xl font-semibold text-blue-900 mb-2">Connexion en cours...</h3>
+          <p className="text-gray-600 mb-4">Un médecin va vous rejoindre dans quelques instants</p>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="text-blue-600 border-blue-600 hover:bg-blue-50"
+          >
+            Annuler
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col">
@@ -119,8 +345,8 @@ const ConsultationChat = ({ onClose }: ConsultationChatProps) => {
             </AvatarFallback>
           </Avatar>
           <div>
-            <h3 className="font-semibold">Dr. Martin</h3>
-            <p className="text-xs text-blue-200">Médecin généraliste</p>
+            <h3 className="font-semibold">{doctor?.full_name || 'Dr. Martin'}</h3>
+            <p className="text-xs text-blue-200">{doctor?.speciality || 'Médecin généraliste'}</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -131,7 +357,7 @@ const ConsultationChat = ({ onClose }: ConsultationChatProps) => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={onClose}
+            onClick={endConsultation}
             className="text-white hover:bg-blue-700"
           >
             <X className="w-5 h-5" />
