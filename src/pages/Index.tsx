@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Stethoscope, Shield, Clock, Phone, MessageCircle, Image as ImageIcon, Menu, User, HelpCircle, Info } from "lucide-react";
+import { Stethoscope, Shield, Clock, Phone, MessageCircle, Image as ImageIcon, Menu, User, HelpCircle, Info, Smartphone } from "lucide-react";
 import LoginModal from "@/components/LoginModal";
 import PaymentModal from "@/components/PaymentModal";
 import ConsultationChat from "@/components/ConsultationChat";
@@ -31,6 +31,11 @@ const Index = () => {
     setUserType('doctor');
     setShowDoctorDashboard(true);
     setShowSideMenu(false);
+  };
+
+  const handlePlayStoreClick = () => {
+    // Ouvre le Play Store dans un nouvel onglet
+    window.open('https://play.google.com/store/search?q=vision%20sant%C3%A9&c=apps', '_blank');
   };
 
   return (
@@ -86,13 +91,24 @@ const Index = () => {
                 consultation immédiate, disponible 24h/24.
               </p>
               
-              <Button
-                onClick={handleConsultationClick}
-                className="bg-gradient-to-r from-white to-white/95 hover:from-white/95 hover:to-white text-blue-900 text-xl px-12 py-6 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 font-semibold"
-              >
-                <Phone className="w-6 h-6 mr-3" />
-                Appeler un médecin
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mb-6">
+                <Button
+                  onClick={handleConsultationClick}
+                  className="bg-gradient-to-r from-white to-white/95 hover:from-white/95 hover:to-white text-blue-900 text-xl px-12 py-6 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 font-semibold"
+                >
+                  <Phone className="w-6 h-6 mr-3" />
+                  Appeler un médecin
+                </Button>
+                
+                <Button
+                  onClick={handlePlayStoreClick}
+                  variant="outline"
+                  className="bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white/20 text-lg px-8 py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 font-medium"
+                >
+                  <Smartphone className="w-5 h-5 mr-2" />
+                  Télécharger l'app
+                </Button>
+              </div>
               
               <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-white/90">
                 <Shield className="w-4 h-4" />
